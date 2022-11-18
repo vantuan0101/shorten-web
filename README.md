@@ -1,10 +1,10 @@
 
 ### URL TEST API: 
-https://shorten-server.onrender.com/api/test
+https://shorten-web.up.railway.app/api/test
 
 ### URL API :
 #### CRUD User
-https://shorten-server.onrender.com/api/v1/user
+https://shorten-web.up.railway.app/api/v1/user
 
 #### CRUD Shorten Link
-https://shorten-server.onrender.com/api/v1/shorten-link
+https://shorten-web.up.railway.app/api/v1/shorten-link
