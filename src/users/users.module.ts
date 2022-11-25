@@ -6,7 +6,7 @@ import {
 } from '../shorten-link/entities/shorten-link.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
-import { User, UserSchema } from './schemas/user.schema';
+import { User, UserSchema } from './entites/user.entites';
 
 @Module({
   imports: [

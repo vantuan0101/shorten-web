@@ -3,15 +3,13 @@ import {
   Controller,
   Delete,
   Get,
-  HttpStatus,
   Param,
   Patch,
   Post,
-  Query,
   Res,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './schemas/user.schema';
+import { User } from './entites/user.entites';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 

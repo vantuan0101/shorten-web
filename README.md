@@ -2,6 +2,17 @@
 ### URL TEST API THROUGH SWAGGER: 
 https://shorten-web.up.railway.app/api/test
 
+### Redirect Link (GET)
+https://shorten-web.up.railway.app/api/link/:shortedUrl
+
+- `/:shortedUrl` : là chuỗi shorted của url cần rút gọn
+
+### Get All User Include Shorted Url (GET)
+https://shorten-web.up.railway.app/api/link/users
+
+### Get User By Id Include Shorted Url (GET)
+https://shorten-web.up.railway.app/api/link/user/:id
+
 ### AUTH API:
 ### LOGIN (POST)
 https://shorten-web.up.railway.app/api/v1/auth/login

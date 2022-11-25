@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './users/schemas/user.schema';
+import { RedisModule } from '@nestjs-modules/ioredis';
+import { User, UserSchema } from './users/entites/user.entites';
 import { UsersModule } from './users/users.module';
 import { ShortenLinkModule } from './shorten-link/shorten-link.module';
 import { AuthModule } from './auth/auth.module';
@@ -14,6 +15,13 @@ import {
 
 @Module({
   imports: [
+    RedisModule.forRoot({
+      config: {
+        url: 'redis-15662.c240.us-east-1-3.ec2.cloud.redislabs.com',
+        port: 15662,
+        password: 'kiBaZAdo6MU0Uvus0zSveStrwEGUjrd0',
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

@@ -9,7 +9,7 @@ import {
 } from './entities/shorten-link.entity';
 import { CreateShortenLinkDto } from './dto/create-shorten-link.dto';
 import { UpdateShortenLinkDto } from './dto/update-shorten-link.dto';
-import { User, UserDocument } from '../users/schemas/user.schema';
+import { User, UserDocument } from '../users/entites/user.entites';
 
 @Injectable()
 export class ShortenLinkService {
@@ -34,7 +34,7 @@ export class ShortenLinkService {
       if (user) {
         await this.userService.findOneAndUpdate(
           { _id: user._id },
-          { $push: { createdLink: shortLink } },
+          { $push: { createdLink: shortenLinkResults._id } },
         );
       }
       return shortenLinkResults;

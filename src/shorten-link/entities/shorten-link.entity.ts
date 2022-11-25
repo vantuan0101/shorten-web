@@ -12,9 +12,6 @@ export class ShortenLink {
 
   @Prop()
   countClick: number;
-
-  @Prop()
-  userId: string;
 }
 
 export const ShortenLinkSchema = SchemaFactory.createForClass(ShortenLink);
