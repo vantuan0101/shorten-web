@@ -48,8 +48,6 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<any> {
-    res.cookie('user', req.user);
-    res.redirect('http://localhost:3000');
     return {
       statusCode: HttpStatus.OK,
       data: req.user,
@@ -68,8 +66,6 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<any> {
-    res.cookie('user', req.user);
-    res.redirect('http://localhost:3000');
     return {
       statusCode: HttpStatus.OK,
       data: req.user,
