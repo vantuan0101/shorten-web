@@ -59,7 +59,11 @@ export class AuthController {
 
   @Get('/google/redirect')
   @UseGuards(AuthGuard('google'))
-  async googleLoginRedirect(@Req() req: Request): Promise<any> {
+  async googleLoginRedirect(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<any> {
+    res.cookie('user', req.user);
     return {
       statusCode: HttpStatus.OK,
       data: req.user,
