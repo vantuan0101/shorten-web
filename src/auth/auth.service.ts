@@ -3,14 +3,18 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon from 'argon2';
 import { Model } from 'mongoose';
-import { Response } from 'express';
+import { Response, Request } from 'express';
+import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { User, UserDocument } from '../users/entites/user.entites';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { SignUpAuthDto } from './dto/signup-auth.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectRedis() private readonly redis: Redis,
+  ) {}
 
   async login(loginAuthDto: LoginAuthDto, response: Response) {
     // console.log(loginAuthDto);
@@ -37,11 +41,13 @@ export class AuthService {
     delete user.clickedLink;
     delete user.createdLink;
     response.cookie('user', user);
+    await this.redis.set(`user:${user._id}`, JSON.stringify(user));
     return user;
   }
 
   async logout(response: Response) {
     try {
+      // console.log(req.cookies('user'));
       response.clearCookie('user');
       return { errCode: 0, message: 'Logout success' };
     } catch (error) {
@@ -71,5 +77,13 @@ export class AuthService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async socialLogin(req: Request, response: Response) {
+    if (!req.user) {
+      return 'No user from google';
+    }
+    response.cookie('user', req.user);
+    return response.redirect('http://localhost:3000');
   }
 }

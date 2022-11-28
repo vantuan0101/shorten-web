@@ -10,13 +10,17 @@ import {
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { SignUpAuthDto } from './dto/signup-auth.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    @InjectRedis() private readonly redis: Redis,
+  ) {}
 
   @Post('signup')
   signup(@Body() signupDto: SignUpAuthDto) {
@@ -38,37 +42,38 @@ export class AuthController {
 
   @Get('/facebook')
   @UseGuards(AuthGuard('facebook'))
-  async facebookLogin(): Promise<any> {
-    return HttpStatus.OK;
-  }
+  async facebookLogin(): Promise<any> {}
 
   @Get('/facebook/redirect')
   @UseGuards(AuthGuard('facebook'))
   async facebookLoginRedirect(
     @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<any> {
-    return {
-      statusCode: HttpStatus.OK,
-      data: req.user,
-    };
+    return this.authService.socialLogin(req, response);
   }
 
   @Get('/google')
   @UseGuards(AuthGuard('google'))
-  async googleLogin(): Promise<any> {
-    return HttpStatus.OK;
-  }
+  async googleLogin(): Promise<any> {}
 
   @Get('/google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleLoginRedirect(
     @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<any> {
+    return this.authService.socialLogin(req, response);
+  }
+
+  @Get('/get-user')
+  async getUser(@Req() req: Request) {
+    if (req.cookies.user) {
+      return req.cookies.user;
+    }
     return {
-      statusCode: HttpStatus.OK,
-      data: req.user,
+      statusCode: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
     };
   }
 }
