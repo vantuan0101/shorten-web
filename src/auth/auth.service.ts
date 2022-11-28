@@ -65,7 +65,9 @@ export class AuthService {
         ...signUpAuthDto,
         password: hash,
       });
-      return { errCode: 0, user: newUser };
+      const userRes = newUser.toObject();
+      delete userRes.password;
+      return { errCode: 0, userRes };
     } catch (error) {
       throw error;
     }
