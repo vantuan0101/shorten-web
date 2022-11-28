@@ -44,7 +44,12 @@ export class AuthController {
 
   @Get('/facebook/redirect')
   @UseGuards(AuthGuard('facebook'))
-  async facebookLoginRedirect(@Req() req: Request): Promise<any> {
+  async facebookLoginRedirect(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<any> {
+    res.cookie('user', req.user);
+    res.redirect('http://localhost:3000');
     return {
       statusCode: HttpStatus.OK,
       data: req.user,
@@ -64,6 +69,7 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<any> {
     res.cookie('user', req.user);
+    res.redirect('http://localhost:3000');
     return {
       statusCode: HttpStatus.OK,
       data: req.user,
