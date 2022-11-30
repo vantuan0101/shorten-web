@@ -35,9 +35,9 @@ export class AuthController {
     return this.authService.login(loginAuthDto, response);
   }
 
-  @Get('logout')
-  logout(@Res({ passthrough: true }) response: Response) {
-    return this.authService.logout(response);
+  @Post('logout')
+  logout(@Body() id: string, @Res({ passthrough: true }) response: Response) {
+    return this.authService.logout(id, response);
   }
 
   @Get('/facebook')
@@ -66,14 +66,8 @@ export class AuthController {
     return this.authService.socialLogin(req, response);
   }
 
-  @Get('/get-user')
-  async getUser(@Req() req: Request) {
-    if (req.cookies.user) {
-      return req.cookies.user;
-    }
-    return {
-      statusCode: HttpStatus.BAD_REQUEST,
-      message: 'User not found',
-    };
-  }
+  // @Get('/get-user')
+  // async getUser(@Req() req: Request) {
+  //   return this.authService.getMe(req);
+  // }
 }

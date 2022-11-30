@@ -45,10 +45,11 @@ export class AuthService {
     return user;
   }
 
-  async logout(response: Response) {
+  async logout(id: string, response: Response) {
     try {
       // console.log(req.cookies('user'));
       response.clearCookie('user');
+      await this.redis.del(`user:${id}`);
       return { errCode: 0, message: 'Logout success' };
     } catch (error) {
       throw error;
@@ -81,9 +82,25 @@ export class AuthService {
 
   async socialLogin(req: Request, response: Response) {
     if (!req.user) {
-      return 'No user from google';
+      return 'No user';
     }
-    response.cookie('user', req.user);
-    return response.redirect('http://localhost:3000');
+    const infoUser: any = req.user;
+    const checkUser = await this.userModel.findOne({
+      email: infoUser.email,
+    });
+    let newUser = null;
+    if (!checkUser) {
+      newUser = await this.userModel.create({
+        email: infoUser.email,
+        firstName: infoUser.firstName,
+        lastName: infoUser.lastName,
+        picture: infoUser.picture,
+      });
+    }
+
+    response.cookie('user', newUser || checkUser);
+    const idReturn = checkUser ? checkUser._id : newUser._id;
+    // await this.redis.set(`user:${idReturn}`, JSON.stringify(req.user));
+    return response.redirect(`http://localhost:3000/login?id=${idReturn}`);
   }
 }

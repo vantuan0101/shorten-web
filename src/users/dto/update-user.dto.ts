@@ -1,9 +1,13 @@
-import { MaxLength, IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { MaxLength, IsEmail, IsString, IsOptional } from 'class-validator';
 
 export class UpdateUserDto {
   @IsString()
   @IsOptional()
-  readonly name: string;
+  readonly lastName: string;
+
+  @IsString()
+  @IsOptional()
+  readonly firstName: string;
 
   @IsString()
   @MaxLength(30)
@@ -13,4 +17,8 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   readonly password: string;
+
+  @IsEmail()
+  @IsOptional()
+  readonly email: string;
 }
