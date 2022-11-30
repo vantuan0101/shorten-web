@@ -101,6 +101,6 @@ export class AuthService {
     response.cookie('user', newUser || checkUser);
     const idReturn = checkUser ? checkUser._id : newUser._id;
     // await this.redis.set(`user:${idReturn}`, JSON.stringify(req.user));
-    return response.redirect(`http://localhost:3000/login?id=${idReturn}`);
+    return response.redirect(`${process.env.CLIENT_URL}/login?id=${idReturn}`);
   }
 }

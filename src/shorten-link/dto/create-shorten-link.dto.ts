@@ -18,5 +18,5 @@ export class CreateShortenLinkDto {
 
   @IsString()
   @IsOptional()
-  readonly userId: string;
+  readonly alias: string;
 }

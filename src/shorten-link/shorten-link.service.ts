@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import ShortUniqueId from 'short-unique-id';
@@ -20,13 +20,28 @@ export class ShortenLinkService {
   ) {}
 
   async create(createShortenLinkDto: CreateShortenLinkDto, request: Request) {
-    // console.log(createShortenLinkDto);
     try {
-      const randomLink = new ShortUniqueId({ length: 5 });
+      let randomLink = null;
+      if (createShortenLinkDto.alias) {
+        const { alias } = createShortenLinkDto;
+        const checkAlias = await this.shortenLinkService.findOne({
+          shortLink: `${process.env.BASE_URL}link/${alias}`,
+        });
+        if (checkAlias) {
+          throw new HttpException(
+            'Alias already exists',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+        randomLink = createShortenLinkDto.alias;
+      } else {
+        const uid = new ShortUniqueId({ length: 5 });
+        randomLink = uid();
+      }
       // console.log(shortLink());
       const { user } = request.cookies;
       // console.log(user);
-      const shortLink = `${process.env.BASE_URL}link/${randomLink()}`;
+      const shortLink = `${process.env.BASE_URL}link/${randomLink}`;
       const shortenLinkResults = await this.shortenLinkService.create({
         ...createShortenLinkDto,
         shortLink,
