@@ -20,6 +20,14 @@ https://shorten-web.up.railway.app/api/v1/auth/login
 - username : string
 - password : string
 
+### LOGIN FACEBOOK
+https://shorten-web.up.railway.app/api/v1/auth/facebook
+</br>
+
+### LOGIN GOOGLE
+https://shorten-web.up.railway.app/api/v1/auth/google
+</br>
+
 ### SIGN UP (POST)
 https://shorten-web.up.railway.app/api/v1/auth/signup
 </br>
