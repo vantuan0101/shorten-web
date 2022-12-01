@@ -8,6 +8,7 @@ import {
   Post,
   Res,
 } from '@nestjs/common';
+import { UserDecorator } from 'src/decorator/user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entites/user.entites';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -25,6 +26,11 @@ export class UsersController {
   @Get(':id')
   findUserById(@Param('id') id: string): Promise<User | string> {
     return this.usersService.findById(id);
+  }
+
+  @Post('/disable-user')
+  disableUser(@Body() id: string, @UserDecorator() user: User) {
+    return this.usersService.disableUser(id, user);
   }
 
   @Post()

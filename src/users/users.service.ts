@@ -28,7 +28,7 @@ export class UsersService {
   }
 
   async findById(id: string): Promise<User | any> {
-    const checkUserCache = await this.redis.get(`user:${id}`);
+    const checkUserCache = await this.redis.get(`user:${id}:info`);
     if (checkUserCache) {
       return JSON.parse(checkUserCache);
     }
@@ -39,7 +39,7 @@ export class UsersService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
-    await this.redis.set(`user:${user._id}`, JSON.stringify(user));
+    await this.redis.set(`user:${user._id}:info`, JSON.stringify(user));
     return user;
   }
 
@@ -68,9 +68,9 @@ export class UsersService {
     const userResult = await this.userModel
       .findOneAndUpdate({ id }, { ...user }, { new: true })
       .select({ password: 0 });
-    const userCache = await this.redis.get(`user:${id}`);
+    const userCache = await this.redis.get(`user:${id}:info`);
     if (userCache) {
-      await this.redis.set(`user:${id}`, JSON.stringify(userResult));
+      await this.redis.set(`user:${id}:info`, JSON.stringify(userResult));
     }
     return userResult;
   }
@@ -80,5 +80,16 @@ export class UsersService {
       .findOneAndDelete({ id })
       .select({ password: 0 });
     return userResult;
+  }
+
+  async disableUser(id: string, user: User) {
+    // console.log(user);
+    if (user?.role !== 'admin') {
+      throw new HttpException(
+        'You are not authorized',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    await this.redis.del(`user:${id}:login`);
   }
 }

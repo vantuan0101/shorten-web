@@ -2,6 +2,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as compression from 'compression';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -14,6 +16,9 @@ async function bootstrap() {
     .build();
   app.setGlobalPrefix('api/v1');
   app.use(cookieParser());
+  app.use(compression());
+  app.use(helmet());
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // true = only validate fields that are defined in the DTO
@@ -25,6 +30,6 @@ async function bootstrap() {
   });
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/test', app, document);
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
 bootstrap();

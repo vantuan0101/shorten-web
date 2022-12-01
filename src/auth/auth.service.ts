@@ -5,6 +5,10 @@ import * as argon from 'argon2';
 import { Model } from 'mongoose';
 import { Response, Request } from 'express';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
+import requestIp from 'request-ip';
+import IP from 'ip';
+import ipaddr from 'ipaddr.js';
+import { getInfoDevice } from '../common/getInfoDevice';
 import { User, UserDocument } from '../users/entites/user.entites';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { SignUpAuthDto } from './dto/signup-auth.dto';
@@ -16,7 +20,7 @@ export class AuthService {
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  async login(loginAuthDto: LoginAuthDto, response: Response) {
+  async login(loginAuthDto: LoginAuthDto, req: Request, response: Response) {
     // console.log(loginAuthDto);
     const user = await this.userModel
       .findOne({
@@ -41,7 +45,15 @@ export class AuthService {
     delete user.clickedLink;
     delete user.createdLink;
     response.cookie('user', user);
-    await this.redis.set(`user:${user._id}`, JSON.stringify(user));
+    await this.redis.set(`user:${user._id}:info`, JSON.stringify(user));
+    const checkDevice = getInfoDevice(req.get('User-Agent'));
+    const ipAddress = req.headers['x-forwarded-for'] || req.ip;
+    // console.log(ipAddress);
+    await this.redis.hset(
+      `user:${user._id}:login`,
+      `${ipAddress}`,
+      JSON.stringify(checkDevice),
+    );
     return user;
   }
 
@@ -100,7 +112,10 @@ export class AuthService {
 
     response.cookie('user', newUser || checkUser);
     const idReturn = checkUser ? checkUser._id : newUser._id;
-    // await this.redis.set(`user:${idReturn}`, JSON.stringify(req.user));
+    await this.redis.set(
+      `user:${idReturn}:info`,
+      JSON.stringify(newUser || checkUser),
+    );
     return response.redirect(`${process.env.CLIENT_URL}/login?id=${idReturn}`);
   }
 }

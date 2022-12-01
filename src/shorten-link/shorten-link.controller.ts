@@ -8,12 +8,14 @@ import {
   Delete,
   Res,
   Req,
+  Query,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ShortenLink } from './entities/shorten-link.entity';
 import { ShortenLinkService } from './shorten-link.service';
 import { CreateShortenLinkDto } from './dto/create-shorten-link.dto';
 import { UpdateShortenLinkDto } from './dto/update-shorten-link.dto';
+import { PageOptionsDto } from './dto/PageOptionsDto';
 
 @Controller('shorten-link')
 export class ShortenLinkController {
@@ -28,8 +30,8 @@ export class ShortenLinkController {
   }
 
   @Get()
-  findAllShortenLink(): Promise<ShortenLink[]> {
-    return this.shortenLinkService.findAll();
+  findAllShortenLink(@Query() pageOptionsDto: PageOptionsDto) {
+    return this.shortenLinkService.findAll(pageOptionsDto);
   }
 
   @Get(':id')

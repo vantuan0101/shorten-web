@@ -22,6 +22,9 @@ export class User {
   @Prop()
   password: string;
 
+  @Prop({ default: 'user' })
+  role: string;
+
   @Prop({ type: [{ type: Types.ObjectId, ref: 'ShortenLink' }] })
   clickedLink: [];
 

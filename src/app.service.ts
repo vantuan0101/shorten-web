@@ -2,6 +2,8 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Response, Request } from 'express';
 import { Model } from 'mongoose';
+import { handlePageOptions } from './common/handlePageOptions';
+import { PageOptionsDto } from './shorten-link/dto/PageOptionsDto';
 import { User, UserDocument } from './users/entites/user.entites';
 import {
   ShortenLink,
@@ -39,22 +41,37 @@ export class AppService {
     return response.redirect(shortenLinkResults?.linkToRedirect);
   }
 
-  async getAllLinkOfUsers() {
+  async getAllLinkOfUsers(pageOptionsDto: PageOptionsDto) {
+    const { limit, skip, sortOptions } = handlePageOptions(pageOptionsDto);
     const users = await this.userService
       .find({})
       .select({ password: 0 })
-      .populate('createdLink')
-      .populate('clickedLink');
+      .populate({
+        path: 'createdLink',
+        options: { limit, skip, sort: sortOptions },
+      })
+      .populate({
+        path: 'clickedLink',
+        options: { limit, skip, sort: sortOptions },
+      });
 
     return users;
   }
 
-  async getAllLinkOfUserById(id: string) {
+  async getAllLinkOfUserById(id: string, pageOptionsDto: PageOptionsDto) {
+    const { limit, skip, sortOptions } = handlePageOptions(pageOptionsDto);
+
     const user = await this.userService
       .findOne({ _id: id })
       .select({ password: 0 })
-      .populate('createdLink')
-      .populate('clickedLink');
+      .populate({
+        path: 'createdLink',
+        options: { limit, skip, sort: sortOptions },
+      })
+      .populate({
+        path: 'clickedLink',
+        options: { limit, skip, sort: sortOptions },
+      });
 
     return user;
   }

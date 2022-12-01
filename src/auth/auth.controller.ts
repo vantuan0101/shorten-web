@@ -30,9 +30,10 @@ export class AuthController {
   @Post('login')
   login(
     @Body() loginAuthDto: LoginAuthDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.login(loginAuthDto, response);
+    return this.authService.login(loginAuthDto, req, response);
   }
 
   @Post('logout')
