@@ -11,7 +11,11 @@ import { LoginAuthDto } from './login-auth.dto';
 export class SignUpAuthDto extends PartialType(LoginAuthDto) {
   @IsString()
   @IsNotEmpty()
-  readonly name: string;
+  readonly firstName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly lastName: string;
 
   @IsString()
   @IsNotEmpty()

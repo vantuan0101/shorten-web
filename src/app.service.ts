@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Response, Request } from 'express';
 import { Model } from 'mongoose';
+import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { handlePageOptions } from './common/handlePageOptions';
 import { PageOptionsDto } from './shorten-link/dto/PageOptionsDto';
 import { User, UserDocument } from './users/entites/user.entites';
@@ -16,6 +17,7 @@ export class AppService {
     @InjectModel(ShortenLink.name)
     private shortenLinkService: Model<ShortenLinkDocument>,
     @InjectModel(User.name) private userService: Model<UserDocument>,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async redirectLink(shortedUrl: string, response: Response, request: Request) {
@@ -74,5 +76,23 @@ export class AppService {
       });
 
     return user;
+  }
+
+  async checkDisableUser(request: Request) {
+    const { user } = request.cookies;
+    const ipAddress =
+      request.headers['x-forwarded-for'] || request.connection.remoteAddress;
+    if (!user) return 'You are not yet login';
+    const checkIp = await this.redis.hget(
+      `user:${user._id}:ip`,
+      `${ipAddress}`,
+    );
+    if (!checkIp) {
+      throw new HttpException(
+        'User has been disabled , please login again',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return checkIp;
   }
 }

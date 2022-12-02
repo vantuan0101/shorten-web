@@ -5,9 +5,6 @@ import * as argon from 'argon2';
 import { Model } from 'mongoose';
 import { Response, Request } from 'express';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
-import requestIp from 'request-ip';
-import IP from 'ip';
-import ipaddr from 'ipaddr.js';
 import { getInfoDevice } from '../common/getInfoDevice';
 import { User, UserDocument } from '../users/entites/user.entites';
 import { LoginAuthDto } from './dto/login-auth.dto';
@@ -50,7 +47,7 @@ export class AuthService {
     const ipAddress = req.headers['x-forwarded-for'] || req.ip;
     // console.log(ipAddress);
     await this.redis.hset(
-      `user:${user._id}:login`,
+      `user:${user._id}:ip`,
       `${ipAddress}`,
       JSON.stringify(checkDevice),
     );

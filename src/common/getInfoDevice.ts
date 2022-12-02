@@ -1,5 +1,4 @@
 import { UAParser } from 'ua-parser-js';
-import DeviceDetector from 'node-device-detector';
 
 export const getInfoDevice = (userAgent: string) => {
   const parser = new UAParser();

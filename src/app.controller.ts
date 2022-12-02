@@ -7,6 +7,11 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get('/check')
+  checkDisableUser(@Req() request: Request) {
+    return this.appService.checkDisableUser(request);
+  }
+
   @Get('/users')
   getAllLinkOfUsers(@Query() pageOptionsDto: PageOptionsDto) {
     return this.appService.getAllLinkOfUsers(pageOptionsDto);

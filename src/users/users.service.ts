@@ -21,13 +21,13 @@ export class UsersService {
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  async findAll(): Promise<User[]> {
+  async findAll() {
     const userResults = await this.userModel.find().select({ password: 0 });
 
     return userResults;
   }
 
-  async findById(id: string): Promise<User | any> {
+  async findById(id: string) {
     const checkUserCache = await this.redis.get(`user:${id}:info`);
     if (checkUserCache) {
       return JSON.parse(checkUserCache);
@@ -43,7 +43,7 @@ export class UsersService {
     return user;
   }
 
-  async createUser(user: CreateUserDto): Promise<User | any> {
+  async createUser(user: CreateUserDto) {
     const checkUser = await this.userModel.findOne({
       username: user.username,
     });
@@ -60,14 +60,14 @@ export class UsersService {
     return newUser;
   }
 
-  async updateUser(id: string, user: UpdateUserDto): Promise<User | any> {
+  async updateUser(id: string, user: UpdateUserDto) {
     const checkUser = await this.findById(id);
     if (!checkUser) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
     const userResult = await this.userModel
       .findOneAndUpdate({ id }, { ...user }, { new: true })
-      .select({ password: 0 });
+      .select({ password: 0, clickedLink: 0, createdLink: 0 });
     const userCache = await this.redis.get(`user:${id}:info`);
     if (userCache) {
       await this.redis.set(`user:${id}:info`, JSON.stringify(userResult));
@@ -75,7 +75,7 @@ export class UsersService {
     return userResult;
   }
 
-  async deleteUser(id: string): Promise<User> {
+  async deleteUser(id: string) {
     const userResult = await this.userModel
       .findOneAndDelete({ id })
       .select({ password: 0 });
@@ -83,13 +83,12 @@ export class UsersService {
   }
 
   async disableUser(id: string, user: User) {
-    // console.log(user);
     if (user?.role !== 'admin') {
       throw new HttpException(
         'You are not authorized',
         HttpStatus.UNAUTHORIZED,
       );
     }
-    await this.redis.del(`user:${id}:login`);
+    return await this.redis.del(`user:${id}:ip`);
   }
 }
