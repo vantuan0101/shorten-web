@@ -53,7 +53,7 @@ export class AuthService {
       `${ipAddress}`,
       JSON.stringify(checkDevice),
     );
-    Promise.all([setCacheUserInfo, setCacheUserDetectIp]);
+    await Promise.all([setCacheUserInfo, setCacheUserDetectIp]);
     // console.timeEnd();
     return user;
   }
