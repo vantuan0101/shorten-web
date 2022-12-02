@@ -2,8 +2,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
 import { User, UserSchema } from '../users/entites/user.entites';
 import { ShortenLink, ShortenLinkSchema } from './entities/shorten-link.entity';
-import { ShortenLinkService } from './shorten-link.service';
-import { ShortenLinkController } from './shorten-link.controller';
+import { ShortenLinkService } from './service/shorten-link.service';
+import { ShortenLinkController } from './controller/shorten-link.controller';
 
 @Module({
   imports: [

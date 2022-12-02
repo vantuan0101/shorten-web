@@ -8,11 +8,10 @@ import {
   Post,
   Res,
 } from '@nestjs/common';
-import { UserDecorator } from 'src/decorator/user.decorator';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entites/user.entites';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UsersService } from './users.service';
+import { UpdateUserDto } from '../dto/update-user.dto';
+import { User } from '../entites/user.entites';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { UsersService } from '../service/users.service';
 
 @Controller('users')
 export class UsersController {
@@ -30,8 +29,8 @@ export class UsersController {
 
   // Only admin can disable user
   @Post('/disable-user')
-  disableUser(@Body('id') id: string, @UserDecorator() user: User) {
-    return this.usersService.disableUser(id, user);
+  disableUser(@Body('id') id: string) {
+    return this.usersService.disableUser(id);
   }
 
   @Post()

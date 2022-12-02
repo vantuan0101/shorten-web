@@ -11,9 +11,9 @@ import {
 import { Response, Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
-import { AuthService } from './auth.service';
-import { LoginAuthDto } from './dto/login-auth.dto';
-import { SignUpAuthDto } from './dto/signup-auth.dto';
+import { AuthService } from '../service/auth.service';
+import { LoginAuthDto } from '../dto/login-auth.dto';
+import { SignUpAuthDto } from '../dto/signup-auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -23,7 +23,7 @@ export class AuthController {
   ) {}
 
   @Post('signup')
-  signup(@Body() signupDto: SignUpAuthDto) {
+  signup(@Body() signupDto: SignUpAuthDto): Promise<string> {
     return this.authService.signup(signupDto);
   }
 
@@ -31,44 +31,40 @@ export class AuthController {
   login(
     @Body() loginAuthDto: LoginAuthDto,
     @Req() req: Request,
-    @Res({ passthrough: true }) response: Response,
+    @Res() response: Response,
   ) {
     return this.authService.login(loginAuthDto, req, response);
   }
 
   @Post('logout')
-  logout(@Body() id: string, @Res({ passthrough: true }) response: Response) {
+  logout(@Body() id: string, @Res() response: Response): Promise<string> {
     return this.authService.logout(id, response);
   }
 
   @Get('/facebook')
   @UseGuards(AuthGuard('facebook'))
-  async facebookLogin(): Promise<any> {}
+  async facebookLogin() {
+    return HttpStatus.OK;
+  }
 
   @Get('/facebook/redirect')
   @UseGuards(AuthGuard('facebook'))
-  async facebookLoginRedirect(
-    @Req() req: Request,
-    @Res({ passthrough: true }) response: Response,
-  ): Promise<any> {
+  async facebookLoginRedirect(@Req() req: Request, @Res() response: Response) {
     return this.authService.socialLogin(req, response);
   }
 
   @Get('/google')
   @UseGuards(AuthGuard('google'))
-  async googleLogin(): Promise<any> {}
+  async googleLogin() {
+    return HttpStatus.OK;
+  }
 
   @Get('/google/redirect')
   @UseGuards(AuthGuard('google'))
   async googleLoginRedirect(
     @Req() req: Request,
-    @Res({ passthrough: true }) response: Response,
-  ): Promise<any> {
+    @Res() response: Response,
+  ): Promise<void> {
     return this.authService.socialLogin(req, response);
   }
-
-  // @Get('/get-user')
-  // async getUser(@Req() req: Request) {
-  //   return this.authService.getMe(req);
-  // }
 }

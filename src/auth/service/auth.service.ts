@@ -1,14 +1,13 @@
-/* eslint-disable no-useless-catch */
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as argon from 'argon2';
 import { Model } from 'mongoose';
 import { Response, Request } from 'express';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
-import { getInfoDevice } from '../common/getInfoDevice';
-import { User, UserDocument } from '../users/entites/user.entites';
-import { LoginAuthDto } from './dto/login-auth.dto';
-import { SignUpAuthDto } from './dto/signup-auth.dto';
+import { UserDocument, User } from '../../users/entites/user.entites';
+import { LoginAuthDto } from '../dto/login-auth.dto';
+import { SignUpAuthDto } from '../dto/signup-auth.dto';
+import { getInfoDevice } from '../../common/getInfoDevice';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +22,7 @@ export class AuthService {
       .findOne({
         username: loginAuthDto.username,
       })
+      .select({ clickedLink: 0, createdLink: 0, role: 0 })
       .lean();
 
     if (!user) {
@@ -39,60 +39,58 @@ export class AuthService {
       );
     }
     delete user.password;
-    delete user.clickedLink;
-    delete user.createdLink;
     response.cookie('user', user);
-    await this.redis.set(`user:${user._id}:info`, JSON.stringify(user));
     const checkDevice = getInfoDevice(req.get('User-Agent'));
     const ipAddress = req.headers['x-forwarded-for'] || req.ip;
     // console.log(ipAddress);
-    await this.redis.hset(
+    // console.time();
+    const setCacheUserInfo = this.redis.set(
+      `user:${user._id}:info`,
+      JSON.stringify(user),
+    );
+    const setCacheUserDetectIp = this.redis.hset(
       `user:${user._id}:ip`,
       `${ipAddress}`,
       JSON.stringify(checkDevice),
     );
+    Promise.all([setCacheUserInfo, setCacheUserDetectIp]);
+    // console.timeEnd();
     return user;
   }
 
-  async logout(id: string, response: Response) {
-    try {
-      // console.log(req.cookies('user'));
-      response.clearCookie('user');
-      await this.redis.del(`user:${id}`);
-      return { errCode: 0, message: 'Logout success' };
-    } catch (error) {
-      throw error;
+  async logout(id: string, response: Response): Promise<string> {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
+    response.clearCookie('user');
+    await this.redis.del(`user:${id}`);
+    return 'Logout success';
   }
 
-  async signup(signUpAuthDto: SignUpAuthDto) {
-    try {
-      // console.log(signUpAuthDto);
+  async signup(signUpAuthDto: SignUpAuthDto): Promise<string> {
+    // console.log(signUpAuthDto);
 
-      const user = await this.userModel.findOne({
-        username: signUpAuthDto.username,
-      });
-      if (user) {
-        throw new Error('User already exists');
-      }
-
-      const hash = await argon.hash(signUpAuthDto.password);
-      const newUser = await this.userModel.create({
-        ...signUpAuthDto,
-        password: hash,
-      });
-      const userRes = newUser.toObject();
-      delete userRes.password;
-      return { errCode: 0, userRes };
-    } catch (error) {
-      throw error;
+    const user = await this.userModel.findOne({
+      username: signUpAuthDto.username,
+    });
+    if (user) {
+      throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
     }
+
+    const hashPassword = await argon.hash(signUpAuthDto.password);
+    await this.userModel.create({
+      ...signUpAuthDto,
+      password: hashPassword,
+    });
+    return 'Sign up success';
   }
 
-  async socialLogin(req: Request, response: Response) {
+  async socialLogin(req: Request, response: Response): Promise<void> {
     if (!req.user) {
-      return 'No user';
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
+    // console.log(req.user);
     const infoUser: any = req.user;
     const checkUser = await this.userModel.findOne({
       email: infoUser.email,
@@ -108,11 +106,11 @@ export class AuthService {
     }
 
     response.cookie('user', newUser || checkUser);
-    const idReturn = checkUser ? checkUser._id : newUser._id;
+    const idUser = checkUser ? checkUser._id : newUser._id;
     await this.redis.set(
-      `user:${idReturn}:info`,
+      `user:${idUser}:info`,
       JSON.stringify(newUser || checkUser),
     );
-    return response.redirect(`${process.env.CLIENT_URL}/login?id=${idReturn}`);
+    response.redirect(`${process.env.CLIENT_URL}/login?id=${idUser}`);
   }
 }

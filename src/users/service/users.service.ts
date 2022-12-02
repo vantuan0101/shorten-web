@@ -7,10 +7,10 @@ import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import {
   ShortenLinkDocument,
   ShortenLink,
-} from '../shorten-link/entities/shorten-link.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { User, UserDocument } from './entites/user.entites';
-import { UpdateUserDto } from './dto/update-user.dto';
+} from '../../shorten-link/entities/shorten-link.entity';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { User, UserDocument } from '../entites/user.entites';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +22,10 @@ export class UsersService {
   ) {}
 
   async findAll() {
-    const userResults = await this.userModel.find().select({ password: 0 });
+    const userResults = await this.userModel
+      .find()
+      .select({ password: 0, clickedLink: 0, createdLink: 0, role: 0 })
+      .lean();
 
     return userResults;
   }
@@ -34,8 +37,8 @@ export class UsersService {
     }
     const user = await this.userModel
       .findById(id)
-      .select({ password: 0, clickedLink: 0, createdLink: 0 })
-      .exec();
+      .select({ password: 0, clickedLink: 0, createdLink: 0, role: 0 })
+      .lean();
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
@@ -61,9 +64,24 @@ export class UsersService {
   }
 
   async updateUser(id: string, user: UpdateUserDto) {
-    const checkUser = await this.findById(id);
-    if (!checkUser) {
+    const findCheckUser = this.findById(id);
+    const getCacheUser = this.redis.get(`user:${id}:info`);
+    const [checkUser, cacheUser] = await Promise.all([
+      findCheckUser,
+      getCacheUser,
+    ]);
+    // console.log(checkUser, cacheUser);
+    if (!checkUser || !cacheUser) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    }
+    if (
+      checkUser.role !== 'admin' &&
+      checkUser._id !== JSON.parse(cacheUser)._id
+    ) {
+      throw new HttpException(
+        'You are not authorized',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     const userResult = await this.userModel
       .findOneAndUpdate({ id }, { ...user }, { new: true })
@@ -76,19 +94,49 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
+    const findCheckUser = this.findById(id);
+    const getCacheUser = this.redis.get(`user:${id}:info`);
+    const [checkUser, cacheUser] = await Promise.all([
+      findCheckUser,
+      getCacheUser,
+    ]);
+    // console.log(checkUser, cacheUser);
+    if (!checkUser || !cacheUser) {
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    }
+    if (
+      checkUser.role !== 'admin' &&
+      checkUser._id !== JSON.parse(cacheUser)._id
+    ) {
+      throw new HttpException(
+        'You are not authorized',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
     const userResult = await this.userModel
       .findOneAndDelete({ id })
       .select({ password: 0 });
     return userResult;
   }
 
-  async disableUser(id: string, user: User) {
-    if (user?.role !== 'admin') {
+  async disableUser(id: string) {
+    const findCheckUser = this.findById(id);
+    const getCacheUser = this.redis.get(`user:${id}:info`);
+    const [checkUser, cacheUser] = await Promise.all([
+      findCheckUser,
+      getCacheUser,
+    ]);
+    // console.log(checkUser, cacheUser);
+    if (!checkUser || !cacheUser) {
+      throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+    }
+    if (checkUser.role !== 'admin') {
       throw new HttpException(
         'You are not authorized',
         HttpStatus.UNAUTHORIZED,
       );
     }
+
     return await this.redis.del(`user:${id}:ip`);
   }
 }

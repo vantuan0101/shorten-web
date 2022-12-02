@@ -8,11 +8,11 @@ export class PageOptionsDto {
   readonly limit: number;
 
   @IsOptional()
-  readonly sortShortLink: any;
+  readonly sortShortLink: number;
 
   @IsOptional()
-  readonly sortLinkToRedirect: any;
+  readonly sortLinkToRedirect: number;
 
   @IsOptional()
-  readonly sortCountClick: any;
+  readonly sortCountClick: number;
 }

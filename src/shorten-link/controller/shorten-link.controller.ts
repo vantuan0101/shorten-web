@@ -11,11 +11,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { ShortenLink } from './entities/shorten-link.entity';
-import { ShortenLinkService } from './shorten-link.service';
-import { CreateShortenLinkDto } from './dto/create-shorten-link.dto';
-import { UpdateShortenLinkDto } from './dto/update-shorten-link.dto';
-import { PageOptionsDto } from './dto/PageOptionsDto';
+import { ShortenLinkService } from '../service/shorten-link.service';
+import { ShortenLink } from '../entities/shorten-link.entity';
+import { CreateShortenLinkDto } from '../dto/create-shorten-link.dto';
+import { UpdateShortenLinkDto } from '../dto/update-shorten-link.dto';
+import { PageOptionsDto } from '../dto/PageOptionsDto';
 
 @Controller('shorten-link')
 export class ShortenLinkController {

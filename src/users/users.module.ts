@@ -4,8 +4,8 @@ import {
   ShortenLink,
   ShortenLinkSchema,
 } from '../shorten-link/entities/shorten-link.entity';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
+import { UsersService } from './service/users.service';
+import { UsersController } from './controller/users.controller';
 import { User, UserSchema } from './entites/user.entites';
 
 @Module({

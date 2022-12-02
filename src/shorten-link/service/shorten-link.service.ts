@@ -3,15 +3,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import ShortUniqueId from 'short-unique-id';
 import { Request } from 'express';
-import { handlePageOptions } from '../common/handlePageOptions';
+import { handlePageOptions } from '../../common/handlePageOptions';
 import {
   ShortenLink,
   ShortenLinkDocument,
-} from './entities/shorten-link.entity';
-import { CreateShortenLinkDto } from './dto/create-shorten-link.dto';
-import { UpdateShortenLinkDto } from './dto/update-shorten-link.dto';
-import { User, UserDocument } from '../users/entites/user.entites';
-import { PageOptionsDto } from './dto/PageOptionsDto';
+} from '../entities/shorten-link.entity';
+import { CreateShortenLinkDto } from '../dto/create-shorten-link.dto';
+import { UpdateShortenLinkDto } from '../dto/update-shorten-link.dto';
+import { User, UserDocument } from '../../users/entites/user.entites';
+import { PageOptionsDto } from '../dto/PageOptionsDto';
 
 @Injectable()
 export class ShortenLinkService {
@@ -62,12 +62,11 @@ export class ShortenLinkService {
 
   async findAll(pageOptionsDto: PageOptionsDto) {
     const { limit, skip, sortOptions } = handlePageOptions(pageOptionsDto);
-    const sort =
-      Object.keys(sortOptions).length === 0 ? { _id: 1 } : sortOptions;
+
     const shortenLinkResults = await this.shortenLinkService.aggregate([
       {
         $facet: {
-          data: [{ $sort: sort }, { $skip: skip }, { $limit: limit }],
+          data: [{ $sort: sortOptions }, { $skip: skip }, { $limit: limit }],
           totalCount: [{ $count: 'totalCount' }],
         },
       },

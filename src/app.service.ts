@@ -80,9 +80,11 @@ export class AppService {
 
   async checkDisableUser(request: Request) {
     const { user } = request.cookies;
+    if (!user) {
+      throw new HttpException('You are not yet login', HttpStatus.BAD_REQUEST);
+    }
     const ipAddress =
       request.headers['x-forwarded-for'] || request.connection.remoteAddress;
-    if (!user) return 'You are not yet login';
     const checkIp = await this.redis.hget(
       `user:${user._id}:ip`,
       `${ipAddress}`,

@@ -21,7 +21,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // true = only validate fields that are defined in the DTO
+      whitelist: true,
     }),
   );
   app.enableCors({
