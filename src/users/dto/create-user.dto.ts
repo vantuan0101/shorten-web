@@ -1,5 +1,4 @@
 import {
-  MaxLength,
   IsNotEmpty,
   IsEmail,
   IsString,
@@ -7,9 +6,6 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @IsOptional()
-  readonly _id: any;
-
   @IsString()
   @IsNotEmpty()
   readonly firstName: string;
