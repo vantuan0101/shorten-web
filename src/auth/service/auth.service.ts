@@ -43,18 +43,17 @@ export class AuthService {
     const checkDevice = getInfoDevice(req.get('User-Agent'));
     const ipAddress = req.headers['x-forwarded-for'] || req.ip;
     // console.log(ipAddress);
-    // console.time();
-    const setCacheUserInfo = this.redis.set(
+    
+    await this.redis.set(
       `user:${user._id}:info`,
       JSON.stringify(user),
     );
-    const setCacheUserDetectIp = this.redis.hset(
+    await this.redis.hset(
       `user:${user._id}:ip`,
       `${ipAddress}`,
       JSON.stringify(checkDevice),
     );
-    await Promise.all([setCacheUserInfo, setCacheUserDetectIp]);
-    // console.timeEnd();
+    
     return user;
   }
 
