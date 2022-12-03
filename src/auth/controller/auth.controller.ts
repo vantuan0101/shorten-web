@@ -31,7 +31,7 @@ export class AuthController {
   login(
     @Body() loginAuthDto: LoginAuthDto,
     @Req() req: Request,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.login(loginAuthDto, req, response);
   }
@@ -49,7 +49,10 @@ export class AuthController {
 
   @Get('/facebook/redirect')
   @UseGuards(AuthGuard('facebook'))
-  async facebookLoginRedirect(@Req() req: Request, @Res() response: Response) {
+  async facebookLoginRedirect(
+    @Req() req: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     return this.authService.socialLogin(req, response);
   }
 
@@ -63,7 +66,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleLoginRedirect(
     @Req() req: Request,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
     return this.authService.socialLogin(req, response);
   }

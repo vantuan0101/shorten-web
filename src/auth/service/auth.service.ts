@@ -18,13 +18,13 @@ export class AuthService {
 
   async login(loginAuthDto: LoginAuthDto, req: Request, response: Response) {
     // console.log(loginAuthDto);
+
     const user = await this.userModel
       .findOne({
         username: loginAuthDto.username,
       })
       .select({ clickedLink: 0, createdLink: 0, role: 0 })
       .lean();
-
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
@@ -43,17 +43,19 @@ export class AuthService {
     const checkDevice = getInfoDevice(req.get('User-Agent'));
     const ipAddress = req.headers['x-forwarded-for'] || req.ip;
     // console.log(ipAddress);
-    
-    await this.redis.set(
+    // console.log(user);
+    console.time();
+    const setPromiseUserInfo = this.redis.set(
       `user:${user._id}:info`,
       JSON.stringify(user),
     );
-    await this.redis.hset(
+    const setPromiseUserIp = this.redis.hset(
       `user:${user._id}:ip`,
       `${ipAddress}`,
       JSON.stringify(checkDevice),
     );
-    
+    await Promise.all([setPromiseUserInfo, setPromiseUserIp]);
+    console.timeEnd();
     return user;
   }
 
