@@ -7,6 +7,7 @@ import {
   Res,
   UseGuards,
   HttpStatus,
+  Ip,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
@@ -32,8 +33,9 @@ export class AuthController {
     @Body() loginAuthDto: LoginAuthDto,
     @Req() req: Request,
     @Res({ passthrough: true }) response: Response,
+    @Ip() ipAddress: string,
   ) {
-    return this.authService.login(loginAuthDto, req, response);
+    return this.authService.login(loginAuthDto, req, response, ipAddress);
   }
 
   @Post('logout')

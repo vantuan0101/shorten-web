@@ -16,7 +16,12 @@ export class AuthService {
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
-  async login(loginAuthDto: LoginAuthDto, req: Request, response: Response) {
+  async login(
+    loginAuthDto: LoginAuthDto,
+    req: Request,
+    response: Response,
+    ipAddress: string,
+  ) {
     // console.log(loginAuthDto);
 
     const user = await this.userModel
@@ -41,8 +46,6 @@ export class AuthService {
     delete user.password;
     response.cookie('user', user);
     const checkDevice = getInfoDevice(req.get('User-Agent'));
-    const ipAddress = req.headers['x-forwarded-for'] || req.ip;
-    // console.log(ipAddress);
     // console.log(user);
     console.time();
     const setPromiseUserInfo = this.redis.set(
