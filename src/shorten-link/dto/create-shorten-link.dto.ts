@@ -1,11 +1,4 @@
-import {
-  MaxLength,
-  IsNotEmpty,
-  IsEmail,
-  IsString,
-  IsNumber,
-  IsOptional,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateShortenLinkDto {
   @IsString()

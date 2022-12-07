@@ -1,18 +1,16 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import * as argon from 'argon2';
-import { Model } from 'mongoose';
-import { Response, Request } from 'express';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
-import { UserDocument, User } from '../../users/entites/user.entites';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import * as argon from 'argon2';
+import { Request, Response } from 'express';
+import { getInfoDevice } from '../../common/getInfoDevice';
 import { LoginAuthDto } from '../dto/login-auth.dto';
 import { SignUpAuthDto } from '../dto/signup-auth.dto';
-import { getInfoDevice } from '../../common/getInfoDevice';
+import { AuthRepositories } from '../repositorities/auth.repositorities';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly authRepositories: AuthRepositories,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -24,12 +22,12 @@ export class AuthService {
   ) {
     // console.log(loginAuthDto);
 
-    const user = await this.userModel
-      .findOne({
+    const user = await this.authRepositories.findOneByOptions(
+      {
         username: loginAuthDto.username,
-      })
-      .select({ clickedLink: 0, createdLink: 0 })
-      .lean();
+      },
+      { clickedLink: 0, createdLink: 0 },
+    );
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
@@ -64,7 +62,7 @@ export class AuthService {
   }
 
   async logout(id: string, response: Response): Promise<string> {
-    const user = await this.userModel.findById(id);
+    const user = await this.authRepositories.findById(id);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
@@ -76,7 +74,7 @@ export class AuthService {
   async signup(signUpAuthDto: SignUpAuthDto): Promise<string> {
     // console.log(signUpAuthDto);
 
-    const user = await this.userModel.findOne({
+    const user = await this.authRepositories.findOneByOptions({
       username: signUpAuthDto.username,
     });
     if (user) {
@@ -84,7 +82,7 @@ export class AuthService {
     }
 
     const hashPassword = await argon.hash(signUpAuthDto.password);
-    await this.userModel.create({
+    await this.authRepositories.create({
       ...signUpAuthDto,
       password: hashPassword,
     });
@@ -97,12 +95,12 @@ export class AuthService {
     }
     // console.log(req.user);
     const infoUser: any = req.user;
-    const checkUser = await this.userModel.findOne({
+    const checkUser = await this.authRepositories.findOneByOptions({
       email: infoUser.email,
     });
     let newUser = null;
     if (!checkUser) {
-      newUser = await this.userModel.create({
+      newUser = await this.authRepositories.create({
         email: infoUser.email,
         firstName: infoUser.firstName,
         lastName: infoUser.lastName,

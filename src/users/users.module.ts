@@ -1,5 +1,7 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
+import { ShortenLinkRepositories } from '../shorten-link/repositorites/shortenLink.repositorites';
+import { UserRepositories } from './repositorites/user.repositorities';
 import {
   ShortenLink,
   ShortenLinkSchema,
@@ -15,7 +17,7 @@ import { User, UserSchema } from './entites/user.entites';
       { name: ShortenLink.name, schema: ShortenLinkSchema },
     ]),
   ],
-  providers: [UsersService],
+  providers: [UsersService, ShortenLinkRepositories, UserRepositories],
   controllers: [UsersController],
 })
 export class UsersModule {}

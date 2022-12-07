@@ -1,21 +1,21 @@
+import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import {
+  Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
+  Ip,
   Post,
-  Body,
   Req,
   Res,
   UseGuards,
-  HttpStatus,
-  Ip,
-  HttpCode,
 } from '@nestjs/common';
-import { Response, Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
-import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
-import { AuthService } from '../service/auth.service';
+import { Request, Response } from 'express';
 import { LoginAuthDto } from '../dto/login-auth.dto';
 import { SignUpAuthDto } from '../dto/signup-auth.dto';
+import { AuthService } from '../service/auth.service';
 
 @Controller('auth')
 export class AuthController {

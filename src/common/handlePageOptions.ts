@@ -10,17 +10,19 @@ export const handlePageOptions = (pageOptionsDto: PageOptionsDto) => {
   } = pageOptionsDto;
   const skip = (page - 1) * limit;
   const sortOptions = {};
-  if (sortShortLink || sortLinkToRedirect || sortCountClick) {
-    Object.assign(
-      sortOptions,
-      { sortLink: sortShortLink },
-      { linkToRedirect: sortLinkToRedirect },
-      { countClick: sortCountClick },
-    );
-  } else {
-    Object.assign(sortOptions, { _id: 1 });
+  if (sortShortLink) {
+    Object.assign(sortOptions, { sortLink: sortShortLink });
+  }
+  if (sortLinkToRedirect) {
+    Object.assign(sortOptions, { linkToRedirect: sortLinkToRedirect });
+  }
+  if (sortCountClick) {
+    Object.assign(sortOptions, { countClick: sortCountClick });
   }
 
+  if (Object.keys(sortOptions).length === 0) {
+    Object.assign(sortOptions, { _id: 1 });
+  }
   const options = {
     limit,
     page,

@@ -43,41 +43,6 @@ export class AppService {
     return response.redirect(shortenLinkResults?.linkToRedirect);
   }
 
-  async getAllLinkOfUsers(pageOptionsDto: PageOptionsDto) {
-    const { limit, skip, sortOptions } = handlePageOptions(pageOptionsDto);
-    const users = await this.userService
-      .find({})
-      .select({ password: 0 })
-      .populate({
-        path: 'createdLink',
-        options: { limit, skip, sort: sortOptions },
-      })
-      .populate({
-        path: 'clickedLink',
-        options: { limit, skip, sort: sortOptions },
-      });
-
-    return users;
-  }
-
-  async getAllLinkOfUserById(id: string, pageOptionsDto: PageOptionsDto) {
-    const { limit, skip, sortOptions } = handlePageOptions(pageOptionsDto);
-
-    const user = await this.userService
-      .findOne({ _id: id })
-      .select({ password: 0 })
-      .populate({
-        path: 'createdLink',
-        options: { limit, skip, sort: sortOptions },
-      })
-      .populate({
-        path: 'clickedLink',
-        options: { limit, skip, sort: sortOptions },
-      });
-
-    return user;
-  }
-
   async checkDisableUser(request: Request) {
     const { user } = request.cookies;
     if (!user) {

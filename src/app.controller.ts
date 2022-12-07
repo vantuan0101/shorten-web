@@ -11,20 +11,6 @@ export class AppController {
   checkDisableUser(@Req() request: Request) {
     return this.appService.checkDisableUser(request);
   }
-
-  @Get('/users')
-  getAllLinkOfUsers(@Query() pageOptionsDto: PageOptionsDto) {
-    return this.appService.getAllLinkOfUsers(pageOptionsDto);
-  }
-
-  @Get('/user/:id')
-  getAllLinkOfUserById(
-    @Param('id') id: string,
-    @Query() pageOptionsDto: PageOptionsDto,
-  ) {
-    return this.appService.getAllLinkOfUserById(id, pageOptionsDto);
-  }
-
   @Get('/:shortedUrl')
   shortenUrl(
     @Param('shortedUrl') shortedUrl: string,

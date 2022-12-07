@@ -1,33 +1,67 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
-import * as argon from 'argon2';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
-import {
-  ShortenLinkDocument,
-  ShortenLink,
-} from '../../shorten-link/entities/shorten-link.entity';
+import * as argon from 'argon2';
+import { handlePageOptions } from '../../common/handlePageOptions';
+import { PageOptionsDto } from '../../shorten-link/dto/PageOptionsDto';
+import { ShortenLinkRepositories } from '../../shorten-link/repositorites/shortenLink.repositorites';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { User, UserDocument } from '../entites/user.entites';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { UserRepositories } from '../repositorites/user.repositorities';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(ShortenLink.name)
-    private shortenLinkService: Model<ShortenLinkDocument>,
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly shortenLinkRepositories: ShortenLinkRepositories,
+    private readonly userRepositories: UserRepositories,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async findAll() {
-    const userResults = await this.userModel
-      .find()
-      .select({ password: 0, clickedLink: 0, createdLink: 0, role: 0 })
-      .lean();
-
+    const userResults = await this.userRepositories.findAll({
+      password: 0,
+      clickedLink: 0,
+      createdLink: 0,
+      role: 0,
+    });
     return userResults;
+  }
+
+  async getAllLinkOfUsers(pageOptionsDto: PageOptionsDto) {
+    const { limit, skip, sortOptions } = handlePageOptions(pageOptionsDto);
+
+    const users = await this.userRepositories.findAllWithPopulate(
+      [
+        {
+          path: 'createdLink',
+          options: { limit, skip, sort: sortOptions },
+        },
+        {
+          path: 'clickedLink',
+          options: { limit, skip, sort: sortOptions },
+        },
+      ],
+      { password: 0 },
+    );
+
+    return users;
+  }
+
+  async getAllLinkOfUserById(id: string) {
+    const user = await this.userRepositories.findByIdWithPopulate(
+      id,
+
+      [
+        {
+          path: 'createdLink',
+        },
+        {
+          path: 'clickedLink',
+        },
+      ],
+      { password: 0 },
+    );
+    return user;
   }
 
   async findById(id: string) {
@@ -35,10 +69,12 @@ export class UsersService {
     if (checkUserCache) {
       return JSON.parse(checkUserCache);
     }
-    const user = await this.userModel
-      .findById(id)
-      .select({ password: 0, clickedLink: 0, createdLink: 0, role: 0 })
-      .lean();
+    const user = await this.userRepositories.findById(id, {
+      password: 0,
+      clickedLink: 0,
+      createdLink: 0,
+      role: 0,
+    });
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
@@ -47,16 +83,15 @@ export class UsersService {
   }
 
   async createUser(user: CreateUserDto) {
-    const checkUser = await this.userModel.findOne({
+    const checkUser = await this.userRepositories.findOneByOptions({
       username: user.username,
     });
-    // console.log(checkUser);
     if (checkUser) {
       throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
     }
 
     const hash = await argon.hash(user.password);
-    const newUser = await this.userModel.create({
+    const newUser = await this.userRepositories.create({
       ...user,
       password: hash,
     });
@@ -64,28 +99,15 @@ export class UsersService {
   }
 
   async updateUser(id: string, user: UpdateUserDto) {
-    const findCheckUser = this.findById(id);
-    const getCacheUser = this.redis.get(`user:${id}:info`);
-    const [checkUser, cacheUser] = await Promise.all([
-      findCheckUser,
-      getCacheUser,
-    ]);
-    // console.log(checkUser, cacheUser);
-    if (!checkUser || !cacheUser) {
+    const checkUser = await this.findById(id);
+    if (!checkUser) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
-    if (
-      checkUser.role !== 'admin' &&
-      checkUser._id !== JSON.parse(cacheUser)._id
-    ) {
-      throw new HttpException(
-        'You are not authorized',
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-    const userResult = await this.userModel
-      .findOneAndUpdate({ id }, { ...user }, { new: true })
-      .select({ password: 0, clickedLink: 0, createdLink: 0 });
+    const userResult = await this.userRepositories.updateById(
+      id,
+      { ...user },
+      { password: 0, clickedLink: 0, createdLink: 0 },
+    );
     const userCache = await this.redis.get(`user:${id}:info`);
     if (userCache) {
       await this.redis.set(`user:${id}:info`, JSON.stringify(userResult));
@@ -94,40 +116,22 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
-    const findCheckUser = this.findById(id);
-    const getCacheUser = this.redis.get(`user:${id}:info`);
-    const [checkUser, cacheUser] = await Promise.all([
-      findCheckUser,
-      getCacheUser,
-    ]);
-    // console.log(checkUser, cacheUser);
-    if (!checkUser || !cacheUser) {
+    const checkUser = await this.findById(id);
+    if (!checkUser) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
-    if (
-      checkUser.role !== 'admin' &&
-      checkUser._id !== JSON.parse(cacheUser)._id
-    ) {
-      throw new HttpException(
-        'You are not authorized',
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
-    const userResult = await this.userModel
-      .findOneAndDelete({ id })
-      .select({ password: 0 });
+    const userResult = await this.userRepositories.deleteById(id);
     return userResult;
   }
 
   async disableUser(id: string) {
-    const findCheckUser = this.findById(id);
+    const findCheckUser = await this.findById(id);
     const getCacheUser = this.redis.get(`user:${id}:info`);
     const [checkUser, cacheUser] = await Promise.all([
       findCheckUser,
       getCacheUser,
     ]);
-    // console.log(checkUser, cacheUser);
-    if (!checkUser || !cacheUser) {
+    if (!findCheckUser || !cacheUser) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
     }
     if (checkUser.role !== 'admin') {
