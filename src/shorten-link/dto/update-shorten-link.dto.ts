@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class UpdateShortenLinkDto {
   @IsString()
@@ -8,12 +8,4 @@ export class UpdateShortenLinkDto {
   @IsString()
   @IsOptional()
   readonly shortLink: string;
-
-  @IsNumber()
-  @IsOptional()
-  readonly countClick: number;
-
-  @IsString()
-  @IsOptional()
-  readonly userId: string;
 }

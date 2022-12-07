@@ -3,7 +3,7 @@ import {
   IsEmail,
   IsString,
   IsOptional,
-MaxLength
+  MaxLength,
 } from 'class-validator';
 
 export class CreateUserDto {

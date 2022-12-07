@@ -1,13 +1,4 @@
-
-import {
-  MaxLength,
-  IsNotEmpty,
-  IsEmail,
-  IsString,
-  IsOptional,
-} from 'class-validator';
-
-
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 export class SignUpAuthDto {
   @IsString()

@@ -28,7 +28,7 @@ export class AuthService {
       .findOne({
         username: loginAuthDto.username,
       })
-      .select({ clickedLink: 0, createdLink: 0, role: 0 })
+      .select({ clickedLink: 0, createdLink: 0 })
       .lean();
     if (!user) {
       throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
@@ -59,6 +59,7 @@ export class AuthService {
     );
     await Promise.all([setPromiseUserInfo, setPromiseUserIp]);
     console.timeEnd();
+    delete user.role;
     return user;
   }
 

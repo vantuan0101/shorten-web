@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpStatus,
   Ip,
+  HttpCode,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
@@ -39,7 +40,11 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout(@Body() id: string, @Res() response: Response): Promise<string> {
+  @HttpCode(200)
+  logout(
+    @Body('id') id: string,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<string> {
     return this.authService.logout(id, response);
   }
 
