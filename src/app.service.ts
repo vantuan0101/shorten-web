@@ -43,22 +43,24 @@ export class AppService {
     return response.redirect(shortenLinkResults?.linkToRedirect);
   }
 
-  async checkDisableUser(request: Request) {
+  async checkDisableUser(request: Request, ipAddress: string) {
     const { user } = request.cookies;
     if (!user) {
-      throw new HttpException('You are not yet login', HttpStatus.BAD_REQUEST);
+      return {
+        status: HttpStatus.UNAUTHORIZED,
+        message: 'You are not yet login',
+      };
+      // throw new HttpException('You are not yet login', HttpStatus.BAD_REQUEST);
     }
-    const ipAddress =
-      request.headers['x-forwarded-for'] || request.connection.remoteAddress;
     const checkIp = await this.redis.hget(
       `user:${user._id}:ip`,
       `${ipAddress}`,
     );
     if (!checkIp) {
-      throw new HttpException(
-        'User has been disabled , please login again',
-        HttpStatus.BAD_REQUEST,
-      );
+      return {
+        status: HttpStatus.UNAUTHORIZED,
+        message: 'User has been disabled , please login again',
+      };
     }
     return checkIp;
   }
