@@ -57,7 +57,6 @@ export class AuthService {
     );
     await Promise.all([setPromiseUserInfo, setPromiseUserIp]);
     console.timeEnd();
-    delete user.role;
     return user;
   }
 
